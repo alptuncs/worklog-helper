@@ -1,21 +1,21 @@
-﻿using CommandLine;
-using Gazel.Client.CommandLine;
-using Gazel.Logging;
-using Newtonsoft.Json;
+﻿//using CommandLine;
+//using Gazel.Client.CommandLine;
+//using Gazel.Logging;
+//using Newtonsoft.Json;
 
-namespace AutoWorklog;
+//namespace AutoWorklog;
 
-public class AddWorkItemCommand : CommandBase<AddWorkItemOptions>
-{
+//public class AddWorkItemCommand : CommandBase<AddWorkItemOptions>
+//{
 
-}
+//}
 
-[Verb("add")]
-public class AddWorkItemOptions : IOptions
-{
+//[Verb("addWorkItem")]
+//public class AddWorkItemOptions : IOptions
+//{
 
-    public AddWorkItemOptions()
-    {
-    
-    }
-}
+//    public AddWorkItemOptions()
+//    {
+
+//    }
+//}
