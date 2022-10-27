@@ -21,98 +21,47 @@ public class AddNewCustomerCommand : CommandBase<AddNewCustomerOptions>
         {
             log.Info("Folder for this month's work logs does not exists, do you want to create it ?");
 
-            Console.WriteLine("y");
-            Console.WriteLine("n");
+            var options = new List<string>();
+            options.Add("y");
+            options.Add("n");
 
-            var input = "";
+            foreach (var option in options)
+            {
+                Console.WriteLine(option);
+            }
 
             var originalpos = Console.CursorTop;
-            var currentpost = originalpos;
-
+            var currentpos = originalpos;
             var k = Console.ReadKey();
 
             while (k.Key != ConsoleKey.Enter)
             {
-
                 if (k.Key == ConsoleKey.UpArrow)
                 {
-                    currentpost--;
-
-                    Console.SetCursorPosition(0, currentpost);
-
-                    if (currentpost == originalpos - 1)
-                    {
-                        Console.ForegroundColor = ConsoleColor.Black;
-                        Console.BackgroundColor = ConsoleColor.White;
-                        Console.WriteLine("n");
-                    }
-
-                    if (currentpost == originalpos - 2)
-                    {
-                        Console.ForegroundColor = ConsoleColor.Black;
-                        Console.BackgroundColor = ConsoleColor.White;
-                        Console.WriteLine("y");
-
-                        Console.ResetColor();
-
-                        Console.SetCursorPosition(0, originalpos - 1);
-                        Console.WriteLine("n");
-
-                        Console.SetCursorPosition(0, originalpos - 2);
-                    }
-
+                    currentpos--;
                 }
 
                 if (k.Key == ConsoleKey.DownArrow)
                 {
-                    currentpost++;
-
-                    Console.SetCursorPosition(0, currentpost);
-
-                    if (currentpost == originalpos - 1)
-                    {
-                        Console.ForegroundColor = ConsoleColor.Black;
-                        Console.BackgroundColor = ConsoleColor.White;
-                        Console.WriteLine("n");
-
-                        Console.ResetColor();
-
-                        Console.SetCursorPosition(0, originalpos - 2);
-                        Console.WriteLine("y");
-
-                        Console.SetCursorPosition(0, originalpos - 1);
-                    }
-
-                    if (currentpost == originalpos - 2)
-                    {
-                        Console.ForegroundColor = ConsoleColor.Black;
-                        Console.BackgroundColor = ConsoleColor.White;
-                        Console.WriteLine("y");
-
-                        Console.ResetColor();
-
-                        Console.SetCursorPosition(0, originalpos - 1);
-                        Console.WriteLine("n");
-
-                        Console.SetCursorPosition(0, originalpos - 2);
-                    }
+                    currentpos++;
                 }
+
+                currentpos = Math.Min(originalpos - 1, Math.Max(originalpos - options.Count, currentpos));
+
+                MoveCursor(originalpos, currentpos, options);
 
                 Console.SetCursorPosition(0, originalpos);
                 k = Console.ReadKey();
             }
 
-            if (currentpost == originalpos - 2) input = "y";
-            if (currentpost == originalpos - 1) input = "n";
-
-            if (input == "y")
+            if (currentpos == originalpos - 2)
             {
                 Directory.CreateDirectory(@"C:\Users\90533\source\repos\AutoWorklog\" + dateTime.Year + "-" + dateTime.Month);
             }
-
             else
             {
                 log.Info("Without folder, file create will give error, stopping process...");
+
                 return;
             }
         }
@@ -120,12 +69,14 @@ public class AddNewCustomerCommand : CommandBase<AddNewCustomerOptions>
         if (Args.Customer == null)
         {
             log.Info("Customer is null, enter the customer as addCustomer -c <customer name> format.");
+
             return;
         }
 
         if (File.Exists(@"C:\Users\90533\source\repos\AutoWorklog\" + dateTime.Year + "-" + dateTime.Month + @"\" + Args.Customer + ".workreport.json"))
         {
             log.Info("File allready exists, stopping the addCustomer process.");
+
             return;
         }
 
@@ -136,6 +87,32 @@ public class AddNewCustomerCommand : CommandBase<AddNewCustomerOptions>
         await File.WriteAllTextAsync(@"C:\Users\90533\source\repos\AutoWorklog\" + dateTime.Year + "-" + dateTime.Month + @"\" + Args.Customer + ".workreport.json", jsonOut);
 
         if (File.Exists(@"C:\Users\90533\source\repos\AutoWorklog\" + dateTime.Year + "-" + dateTime.Month + @"\" + Args.Customer + ".workreport.json")) log.Info("File created succesfully.");
+    }
+
+    public void SetBackgroundColor()
+    {
+        Console.ForegroundColor = ConsoleColor.Black;
+        Console.BackgroundColor = ConsoleColor.White;
+    }
+
+    public void MoveCursor(int originalpos, int currentpos, List<string> options)
+    {
+        Console.SetCursorPosition(0, currentpos);
+
+        HighlightCurrentPos(originalpos, currentpos, options);
+    }
+
+    public void HighlightCurrentPos(int originalpos, int currentpos, List<string> options)
+    {
+        SetBackgroundColor();
+        Console.WriteLine(options[options.Count - (originalpos - currentpos)]);
+
+        Console.ResetColor();
+
+        Console.SetCursorPosition(0, (int)(currentpos + Math.Pow(-1, originalpos - currentpos)));
+        Console.WriteLine(options[(originalpos - currentpos + 1) % 2]);
+
+        Console.SetCursorPosition(0, currentpos);
     }
 }
 
