@@ -9,10 +9,13 @@ public class AddNewCustomerCommand : CommandBase<AddNewCustomerOptions>
     private readonly ILogger log;
     private readonly DateTime dateTime;
 
-    public AddNewCustomerCommand(ILogManager logger)
+    private IConsole Console { get; }
+
+    public AddNewCustomerCommand(ILogManager logger, SystemConsole console)
     {
         log = logger.Get<AddLogCommand>();
         dateTime = DateTime.Today;
+        Console = console;
     }
 
     public override async Task Execute()
@@ -30,7 +33,7 @@ public class AddNewCustomerCommand : CommandBase<AddNewCustomerOptions>
                 Console.WriteLine(option);
             }
 
-            var originalpos = Console.CursorTop;
+            var originalpos = Console.CursorTop();
             var currentpos = originalpos;
             var k = Console.ReadKey();
 
@@ -91,8 +94,8 @@ public class AddNewCustomerCommand : CommandBase<AddNewCustomerOptions>
 
     public void SetBackgroundColor()
     {
-        Console.ForegroundColor = ConsoleColor.Black;
-        Console.BackgroundColor = ConsoleColor.White;
+        Console.SetForeGroundColor(ConsoleColor.Black);
+        Console.SetBackgroundColor(ConsoleColor.White);
     }
 
     public void MoveCursor(int originalpos, int currentpos, List<string> options)
