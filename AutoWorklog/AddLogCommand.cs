@@ -9,13 +9,21 @@ public class AddLogCommand : CommandBase<AddLogOptions>
 {
     private readonly ILogger log;
 
-    public AddLogCommand(ILogManager logger)
+    private IConsole Console { get; }
+    private string Path { get; set; }
+
+    public AddLogCommand(ILogManager logger, SystemConsole console)
     {
         log = logger.Get<AddLogCommand>();
+        Console = console;
+        Path = Environment.CurrentDirectory;
     }
+
     public override async Task Execute()
     {
-        string text = await File.ReadAllTextAsync(@"C:\Users\90533\Documents\GitHub\file-location\test.workreport.json");
+        if (Args.Path != null) Path = Args.Path;
+
+        string text = await File.ReadAllTextAsync(Path + "test.workreport.json");
 
         var json = JsonConvert.DeserializeObject<WorkLogTask>(text);
 
@@ -57,12 +65,9 @@ public class AddLogCommand : CommandBase<AddLogOptions>
 
         string jsonOut = JsonConvert.SerializeObject(serializeTest, Formatting.Indented);
 
-        File.WriteAllText(@"C:\Users\90533\source\repos\AutoWorklog\Test.json", jsonOut);
+        File.WriteAllText(Path + "test.workreport.json", jsonOut);
 
         Console.WriteLine(json);
-
-
-
     }
 }
 
@@ -75,11 +80,14 @@ public class AddLogOptions : IOptions
     public string End { get; }
     [Option('t', "task")]
     public string Task { get; }
+    [Option('p', "path")]
+    public string Path { get; }
 
-    public AddLogOptions(string start, string end, string task)
+    public AddLogOptions(string start, string end, string task, string path)
     {
         Start = start;
         End = end;
         Task = task;
+        Path = path;
     }
 }
