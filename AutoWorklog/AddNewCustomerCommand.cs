@@ -10,17 +10,19 @@ public class AddNewCustomerCommand : CommandBase<AddNewCustomerOptions>
     private readonly DateTime dateTime;
 
     private IConsole Console { get; }
+    private string Path { get; set; }
 
     public AddNewCustomerCommand(ILogManager logger, SystemConsole console)
     {
         log = logger.Get<AddLogCommand>();
         dateTime = DateTime.Today;
         Console = console;
+        Path = Environment.CurrentDirectory;
     }
 
     public override async Task Execute()
     {
-        if (!Directory.Exists(@"C:\Users\90533\source\repos\AutoWorklog\" + dateTime.Year + "-" + dateTime.Month))
+        if (!Directory.Exists(Path + dateTime.Year + "-" + dateTime.Month))
         {
             log.Info("Folder for this month's work logs does not exists, do you want to create it ?");
 
@@ -59,7 +61,7 @@ public class AddNewCustomerCommand : CommandBase<AddNewCustomerOptions>
 
             if (currentpos == originalpos - 2)
             {
-                Directory.CreateDirectory(@"C:\Users\90533\source\repos\AutoWorklog\" + dateTime.Year + "-" + dateTime.Month);
+                Directory.CreateDirectory(Path + dateTime.Year + "-" + dateTime.Month);
             }
             else
             {
@@ -76,7 +78,7 @@ public class AddNewCustomerCommand : CommandBase<AddNewCustomerOptions>
             return;
         }
 
-        if (File.Exists(@"C:\Users\90533\source\repos\AutoWorklog\" + dateTime.Year + "-" + dateTime.Month + @"\" + Args.Customer + ".workreport.json"))
+        if (File.Exists(Path + dateTime.Year + "-" + dateTime.Month + @"\" + Args.Customer + ".workreport.json"))
         {
             log.Info("File allready exists, stopping the addCustomer process.");
 
@@ -87,9 +89,9 @@ public class AddNewCustomerCommand : CommandBase<AddNewCustomerOptions>
 
         string jsonOut = "{ }";
 
-        await File.WriteAllTextAsync(@"C:\Users\90533\source\repos\AutoWorklog\" + dateTime.Year + "-" + dateTime.Month + @"\" + Args.Customer + ".workreport.json", jsonOut);
+        await File.WriteAllTextAsync(Path + dateTime.Year + "-" + dateTime.Month + @"\" + Args.Customer + ".workreport.json", jsonOut);
 
-        if (File.Exists(@"C:\Users\90533\source\repos\AutoWorklog\" + dateTime.Year + "-" + dateTime.Month + @"\" + Args.Customer + ".workreport.json")) log.Info("File created succesfully.");
+        if (File.Exists(Path + dateTime.Year + "-" + dateTime.Month + @"\" + Args.Customer + ".workreport.json")) log.Info("File created succesfully.");
     }
 
     public void SetBackgroundColor()

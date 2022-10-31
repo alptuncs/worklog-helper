@@ -10,15 +10,18 @@ public class AddLogCommand : CommandBase<AddLogOptions>
     private readonly ILogger log;
 
     private IConsole Console { get; }
+    private string Path { get; set; }
 
     public AddLogCommand(ILogManager logger, SystemConsole console)
     {
         log = logger.Get<AddLogCommand>();
         Console = console;
+        Path = Environment.CurrentDirectory;
     }
+
     public override async Task Execute()
     {
-        string text = await File.ReadAllTextAsync(@"C:\Users\90533\Documents\GitHub\file-location\test.workreport.json");
+        string text = await File.ReadAllTextAsync(Path + "test.workreport.json");
 
         var json = JsonConvert.DeserializeObject<WorkLogTask>(text);
 
@@ -60,7 +63,7 @@ public class AddLogCommand : CommandBase<AddLogOptions>
 
         string jsonOut = JsonConvert.SerializeObject(serializeTest, Formatting.Indented);
 
-        File.WriteAllText(@"C:\Users\90533\source\repos\AutoWorklog\Test.json", jsonOut);
+        File.WriteAllText(Path + "test.workreport.json", jsonOut);
 
         Console.WriteLine(json);
     }
