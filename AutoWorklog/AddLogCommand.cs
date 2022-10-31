@@ -21,6 +21,8 @@ public class AddLogCommand : CommandBase<AddLogOptions>
 
     public override async Task Execute()
     {
+        if (Args.Path != null) Path = Args.Path;
+
         string text = await File.ReadAllTextAsync(Path + "test.workreport.json");
 
         var json = JsonConvert.DeserializeObject<WorkLogTask>(text);
@@ -78,11 +80,14 @@ public class AddLogOptions : IOptions
     public string End { get; }
     [Option('t', "task")]
     public string Task { get; }
+    [Option('p', "path")]
+    public string Path { get; }
 
-    public AddLogOptions(string start, string end, string task)
+    public AddLogOptions(string start, string end, string task, string path)
     {
         Start = start;
         End = end;
         Task = task;
+        Path = path;
     }
 }

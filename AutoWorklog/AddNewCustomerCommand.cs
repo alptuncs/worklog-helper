@@ -22,6 +22,8 @@ public class AddNewCustomerCommand : CommandBase<AddNewCustomerOptions>
 
     public override async Task Execute()
     {
+        if (Args.Path != null) Path = Args.Path;
+
         if (!Directory.Exists(Path + dateTime.Year + "-" + dateTime.Month))
         {
             log.Info("Folder for this month's work logs does not exists, do you want to create it ?");
@@ -126,9 +128,12 @@ public class AddNewCustomerOptions : IOptions
 {
     [Option('c', "customer")]
     public string Customer { get; }
+    [Option('p', "path")]
+    public string Path { get; }
 
-    public AddNewCustomerOptions(string customer)
+    public AddNewCustomerOptions(string customer, string path)
     {
         Customer = customer;
+        Path = path;
     }
 }
