@@ -73,12 +73,7 @@ public class AddNewCustomerCommand : CommandBase<AddNewCustomerOptions>
             }
         }
 
-        if (Args.Customer == null)
-        {
-            log.Info("Customer is null, enter the customer as addCustomer -c <customer name> format.");
-
-            return;
-        }
+        if (Args.Customer == null) throw new Exception("Customer is null, enter the customer as addCustomer -c <customer name> format.");
 
         if (File.Exists(Path + dateTime.Year + "-" + dateTime.Month + @"\" + Args.Customer + ".workreport.json"))
         {
