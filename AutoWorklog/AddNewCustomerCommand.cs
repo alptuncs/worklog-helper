@@ -123,7 +123,7 @@ public class AddNewCustomerCommand : CommandBase<AddNewCustomerOptions>
     }
 }
 
-[Verb("addCustomer")]
+[Verb("add-customer")]
 public class AddNewCustomerOptions : IOptions
 {
     [Option('c', "customer")]
