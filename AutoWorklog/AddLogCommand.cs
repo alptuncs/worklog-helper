@@ -9,9 +9,12 @@ public class AddLogCommand : CommandBase<AddLogOptions>
 {
     private readonly ILogger log;
 
-    public AddLogCommand(ILogManager logger)
+    private IConsole Console { get; }
+
+    public AddLogCommand(ILogManager logger, SystemConsole console)
     {
         log = logger.Get<AddLogCommand>();
+        Console = console;
     }
     public override async Task Execute()
     {
@@ -60,9 +63,6 @@ public class AddLogCommand : CommandBase<AddLogOptions>
         File.WriteAllText(@"C:\Users\90533\source\repos\AutoWorklog\Test.json", jsonOut);
 
         Console.WriteLine(json);
-
-
-
     }
 }
 

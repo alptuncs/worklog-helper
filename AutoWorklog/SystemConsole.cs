@@ -18,6 +18,8 @@
 
         public void WriteLine(string text) => Console.WriteLine(text);
 
+        public void WriteLine(WorkLogTask task) => Console.WriteLine(task);
+
         public string ReadLine() => Console.ReadLine();
 
         public void Clear() => Console.Clear();

@@ -4,7 +4,7 @@ namespace AutoWorklog;
 
 public interface IConsole
 {
-    void SetForeGroundColor(ConsoleColor color); 
+    void SetForeGroundColor(ConsoleColor color);
 
     void SetBackgroundColor(ConsoleColor color);
 
@@ -19,6 +19,8 @@ public interface IConsole
     void WriteLine(string message);
 
     void WriteLine(string message, params object[] args);
+
+    void WriteLine(WorkLogTask task);
 
     void Write(char c);
 
