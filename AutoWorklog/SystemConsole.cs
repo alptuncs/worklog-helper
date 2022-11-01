@@ -18,7 +18,7 @@
 
         public void WriteLine(string text) => Console.WriteLine(text);
 
-        public void WriteLine(WorkLogTask task) => Console.WriteLine(task);
+        public void WriteLine(dynamic obj) => Console.WriteLine(obj);
 
         public string ReadLine() => Console.ReadLine();
 

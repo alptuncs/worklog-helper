@@ -1,6 +1,7 @@
 ﻿using CommandLine;
 using Gazel.Client.CommandLine;
 using Gazel.Logging;
+using Microsoft.AspNetCore.DataProtection.KeyManagement;
 using Newtonsoft.Json;
 using System;
 
@@ -26,7 +27,7 @@ public class AddLogCommand : CommandBase<AddLogOptions>
 
         if (Args.Path != null) Path = Args.Path;
 
-        if (!File.Exists(Path + Args.Customer + ".workreport.json"))
+        if (!File.Exists(Path + @"\" + Args.Customer + ".workreport.json"))
         {
             log.Info("Customer workreport file could not be found, create one ?");
 
@@ -65,7 +66,7 @@ public class AddLogCommand : CommandBase<AddLogOptions>
 
             if (currentpos == originalpos - 2)
             {
-                File.WriteAllText(Path + Args.Customer + ".workreport.json", "{}");
+                File.WriteAllText(Path + @"\" + Args.Customer + ".workreport.json", "");
             }
             else
             {
@@ -75,51 +76,66 @@ public class AddLogCommand : CommandBase<AddLogOptions>
             }
         }
 
-        string text = await File.ReadAllTextAsync(Path + Args.Customer + ".workreport.json");
+        string text = await File.ReadAllTextAsync(Path + @"\" + Args.Customer + ".workreport.json");
 
         dynamic MyDynamic = new System.Dynamic.ExpandoObject();
 
-        var json = JsonConvert.DeserializeObject<WorkLogTask>(text);
+        var json = JsonConvert.DeserializeObject<dynamic>(text);
 
-        List<LogEntry> logEntryList = new List<LogEntry>();
+        //List<LogEntry> logEntryList = new List<LogEntry>();
 
-        log.Info("Deneme");
+        //log.Info("Deneme");
 
-        if (Args.Start != null)
+        //if (Args.Start != null)
+        //{
+        //    logEntryList.Add(new(Args.Start, Args.End, Args.Task));
+        //}
+        //else
+        //{
+        //    while (true)
+        //    {
+        //        var input = Console.ReadLine();
+
+        //        if (input == "done") break;
+
+        //        if (input != null)
+        //        {
+        //            MyDynamic.TryAdd(new LogEntry(input.Substring(0, 5), input.Substring(6, 5), input.Substring(11)));
+        //            logEntryList.Add(logEntry);
+        //        }
+        //    }
+        //}
+
+        //var dailyLog = new DailyLog(logEntryList);
+        //List<DailyLog> dailyLogList = new List<DailyLog>();
+        //dailyLogList.Add(dailyLog);
+        //var prList = new List<string>();
+        //prList.Add("Github");
+        //WorkLogTask serializeTest = new WorkLogTask(prList, dailyLogList);
+        //MyDynamic.Worklog = serializeTest;
+
+
+
+        //string jsonOut = JsonConvert.SerializeObject(MyDynamic, Formatting.Indented);
+
+        //File.WriteAllText(Path + "test.workreport.json", jsonOut);
+
+        foreach (var token in json.Children())
         {
-            logEntryList.Add(new(Args.Start, Args.End, Args.Task));
-        }
-        else
-        {
-            while (true)
+            foreach (var items in token.Children())
             {
-                var input = Console.ReadLine();
-
-                if (input == "done") break;
-
-                if (input != null)
+                foreach (var item in items.Children())
                 {
-                    var logEntry = new LogEntry(input.Substring(0, 5), input.Substring(6, 5), input.Substring(11));
-                    logEntryList.Add(logEntry);
+
+                    Console.WriteLine(item.ToString());
+
+                    break;
                 }
+                break;
             }
+
+            break;
         }
-
-        var dailyLog = new DailyLog(logEntryList);
-        List<DailyLog> dailyLogList = new List<DailyLog>();
-        dailyLogList.Add(dailyLog);
-        var prList = new List<string>();
-        prList.Add("Github");
-        WorkLogTask serializeTest = new WorkLogTask(prList, dailyLogList);
-        MyDynamic.Worklog = serializeTest;
-
-
-
-        string jsonOut = JsonConvert.SerializeObject(MyDynamic, Formatting.Indented);
-
-        File.WriteAllText(Path + "test.workreport.json", jsonOut);
-
-        Console.WriteLine(jsonOut);
     }
     public void SetBackgroundColor()
     {
