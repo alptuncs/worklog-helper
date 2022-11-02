@@ -1,14 +1,12 @@
-﻿using Newtonsoft.Json;
-using System.Text.Json.Serialization;
-
-namespace AutoWorklog;
+﻿namespace AutoWorklog;
 
 public class DailyLog
 {
-    //[JsonProperty(PropertyName = "03")]
-    public List<LogEntry> logEntries { get; set; }
-    public DailyLog(List<LogEntry> logEntries)
+    public string Date { get; set; }
+    public List<LogEntry> LogEntries { get; set; }
+    public DailyLog(List<LogEntry> logEntries, string date)
     {
-        this.logEntries = logEntries;
+        LogEntries = (logEntries);
+        Date = date;
     }
 }

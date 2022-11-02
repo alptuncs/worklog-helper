@@ -20,7 +20,7 @@ public interface IConsole
 
     void WriteLine(string message, params object[] args);
 
-    void WriteLine(WorkLogTask task);
+    void WriteLine(dynamic obj);
 
     void Write(char c);
 
