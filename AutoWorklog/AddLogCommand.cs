@@ -2,8 +2,10 @@
 using Gazel.Client.CommandLine;
 using Gazel.Logging;
 using Microsoft.AspNetCore.DataProtection.KeyManagement;
+using Microsoft.AspNetCore.Server.IIS.Core;
 using Newtonsoft.Json;
 using System;
+using System.Dynamic;
 using System.Threading.Tasks.Sources;
 using System.Transactions;
 
@@ -335,8 +337,38 @@ public class AddLogCommand : CommandBase<AddLogOptions>
             string jsonOut = JsonConvert.SerializeObject(json, Formatting.Indented);
 
             File.WriteAllText(Path + @"\" + Args.Customer + ".workreport", jsonOut);
-            log.Info("Done");
+            log.Info("Done, writing in expected format");
+
+
         }
+
+        string fileContent = await File.ReadAllTextAsync(Path + @"\" + Args.Customer + ".workreport");
+
+        var readFile = JsonConvert.DeserializeObject<Root>(fileContent);
+        var root = new ExpandoObject();
+
+        foreach (var work in readFile.Tasks)
+        {
+            var formatted = new ExpandoObject();
+
+            formatted.TryAdd("", work.name);
+            formatted.TryAdd("pr", work.pr);
+
+            var log = new List<DailyLog>();
+            formatted.TryAdd("log", log);
+
+            foreach (var dailyLog in work.log)
+            {
+                log.Add(dailyLog);
+            }
+            root.TryAdd(work.name, formatted);
+        }
+
+        var formattedJson = JsonConvert.SerializeObject(root, Formatting.Indented);
+
+        File.WriteAllText(Path + @"\" + Args.Customer + ".workreport.json", formattedJson);
+
+        log.Info("added formatted file");
     }
     public void SetBackgroundColor()
     {
