@@ -352,7 +352,6 @@ public class AddLogCommand : CommandBase<AddLogOptions>
             var formatted = new ExpandoObject();
             var inner = new ExpandoObject();
 
-            formatted.TryAdd("", work.name);
             formatted.TryAdd("pr", work.pr);
 
             var log = new List<LogEntry>();
