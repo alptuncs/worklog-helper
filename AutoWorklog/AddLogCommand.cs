@@ -350,16 +350,21 @@ public class AddLogCommand : CommandBase<AddLogOptions>
         foreach (var work in readFile.Tasks)
         {
             var formatted = new ExpandoObject();
+            var inner = new ExpandoObject();
 
             formatted.TryAdd("", work.name);
             formatted.TryAdd("pr", work.pr);
 
-            var log = new List<DailyLog>();
-            formatted.TryAdd("log", log);
+            var log = new List<LogEntry>();
+            formatted.TryAdd("log", inner);
 
             foreach (var dailyLog in work.log)
             {
-                log.Add(dailyLog);
+                inner.TryAdd(dailyLog.Date, log);
+                foreach (var logEntry in dailyLog.LogEntries)
+                {
+                    log.Add(logEntry);
+                }
             }
             root.TryAdd(work.name, formatted);
         }
