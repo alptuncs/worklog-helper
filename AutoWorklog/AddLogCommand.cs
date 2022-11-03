@@ -2,6 +2,7 @@
 using Gazel.Client.CommandLine;
 using Gazel.Logging;
 using Newtonsoft.Json;
+using System.Diagnostics;
 using System.Dynamic;
 
 namespace AutoWorklog;
@@ -129,6 +130,7 @@ public class AddLogCommand : CommandBase<AddLogOptions>
             File.WriteAllText(Path + @"\" + Args.Customer + ".workreport", jsonOut);
             log.Info("Done, writing in expected format");
 
+            Commit(Path, Args.Customer);
 
         }
 
@@ -366,6 +368,27 @@ public class AddLogCommand : CommandBase<AddLogOptions>
         var workName = GetWorkName();
 
         return new WorkLogTask(prList, dailyLogList, workName);
+    }
+
+    public void Commit(string Path, string customer)
+    {
+        var p = new Process();
+        var StartInfo = new ProcessStartInfo()
+        {
+            UseShellExecute = true,
+            //FileName = Path + @"\" + customer + "workreport.json"
+
+        };
+
+        StartInfo.ArgumentList.Add("cd " + Path);
+        StartInfo.ArgumentList.Add("Git add .");
+        StartInfo.ArgumentList.Add("Git commit -m\"worklog update\"");
+        StartInfo.ArgumentList.Add("Git push origin main");
+
+        p.StartInfo = StartInfo;
+
+        p.Start();
+        p.Close();
     }
 }
 
