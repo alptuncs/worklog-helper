@@ -92,21 +92,7 @@ public class AddLogCommand : CommandBase<AddLogOptions>
 
                 if (selectedDate == dateoptions.Last())
                 {
-                    Console.WriteLine("Enter log entries");
-
-                    while (true)
-                    {
-
-                        var input = Console.ReadLine();
-
-                        if (input == "done") break;
-
-                        if (input != null)
-                        {
-                            var logEntry = new LogEntry(input.Substring(0, 5), input.Substring(6, 5), input.Substring(11));
-                            logEntryList.Add(logEntry);
-                        }
-                    }
+                    logEntryList = GetLogEntries(null);
 
                     Console.WriteLine("Enter the date");
 
@@ -120,21 +106,7 @@ public class AddLogCommand : CommandBase<AddLogOptions>
                 }
                 else
                 {
-                    Console.WriteLine("Enter log entries");
-
-                    while (true)
-                    {
-
-                        var input = Console.ReadLine();
-
-                        if (input == "done") break;
-
-                        if (input != null)
-                        {
-                            var logEntry = new LogEntry(input.Substring(0, 5), input.Substring(6, 5), input.Substring(11));
-                            logEntryList.Add(logEntry);
-                        }
-                    }
+                    logEntryList = GetLogEntries(null);
                 }
 
                 foreach (var work in json.Tasks)
