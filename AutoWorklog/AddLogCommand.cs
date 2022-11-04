@@ -1,13 +1,11 @@
 ﻿using CommandLine;
 using Gazel.Client.CommandLine;
 using Gazel.Logging;
-using Microsoft.AspNetCore.DataProtection.KeyManagement;
-using Microsoft.AspNetCore.Server.IIS.Core;
 using Newtonsoft.Json;
-using System;
+using System.Collections.ObjectModel;
+using System.Diagnostics;
 using System.Dynamic;
-using System.Threading.Tasks.Sources;
-using System.Transactions;
+using System.Management.Automation;
 
 namespace AutoWorklog;
 
@@ -33,92 +31,27 @@ public class AddLogCommand : CommandBase<AddLogOptions>
 
         if (!File.Exists(Path + @"\" + Args.Customer + ".workreport"))
         {
-            log.Info("Customer workreport file could not be found, create one ?");
+            var reply = YesNoOption();
 
-            var options = new List<string>();
-            options.Add("y");
-            options.Add("n");
-
-            foreach (var option in options)
-            {
-                Console.WriteLine(option);
-            }
-
-            var originalpos = Console.CursorTop();
-            var currentpos = originalpos;
-            var k = Console.ReadKey();
-
-            while (k.Key != ConsoleKey.Enter)
-            {
-                if (k.Key == ConsoleKey.UpArrow)
-                {
-                    currentpos--;
-                }
-
-                if (k.Key == ConsoleKey.DownArrow)
-                {
-                    currentpos++;
-                }
-
-                currentpos = Math.Min(originalpos - 1, Math.Max(originalpos - options.Count, currentpos));
-
-                MoveCursor(originalpos, currentpos, options);
-
-                Console.SetCursorPosition(0, originalpos);
-                k = Console.ReadKey();
-            }
-
-            if (currentpos != originalpos - 2)
+            if (reply == "n")
             {
                 log.Info("Without a file you can't add log entries...");
-
                 return;
             }
-            else
-            {
-                List<LogEntry> logEntryList = new List<LogEntry>();
 
-                Console.WriteLine("Enter log entries");
+            var work = CreateNewWork();
 
-                while (true)
-                {
+            var Tasks = new List<WorkLogTask>();
+            Tasks.Add(work);
 
-                    var input = Console.ReadLine();
+            var Root = new Root(Tasks);
 
-                    if (input == "done") break;
+            var jsonOut = JsonConvert.SerializeObject(Root, Formatting.Indented);
 
-                    if (input != null)
-                    {
-                        var logEntry = new LogEntry(input.Substring(0, 5), input.Substring(6, 5), input.Substring(11));
-                        logEntryList.Add(logEntry);
-                    }
-                }
-
-                Console.WriteLine("Enter The Date");
-
-                var dailyLog = new DailyLog(logEntryList, Console.ReadLine());
-                List<DailyLog> dailyLogList = new List<DailyLog>();
-                dailyLogList.Add(dailyLog);
-
-                var prList = new List<string>();
-
-                Console.WriteLine("Enter the pr for this work");
-                prList.Add(Console.ReadLine());
-
-                Console.WriteLine("Enter the name of Work");
-                WorkLogTask serializeTest = new WorkLogTask(prList, dailyLogList, Console.ReadLine());
-
-                var Tasks = new List<WorkLogTask>();
-                Tasks.Add(serializeTest);
-
-                var Root = new Root(Tasks);
-
-                string jsonOut = JsonConvert.SerializeObject(Root, Formatting.Indented);
-
-                File.WriteAllText(Path + @"\" + Args.Customer + ".workreport", jsonOut);
-                log.Info("Added new file");
-            }
+            File.WriteAllText(Path + @"\" + Args.Customer + ".workreport", jsonOut);
+            log.Info("Added new file");
         }
+
         else
         {
             string text = await File.ReadAllTextAsync(Path + @"\" + Args.Customer + ".workreport");
@@ -134,84 +67,13 @@ public class AddLogCommand : CommandBase<AddLogOptions>
             }
             options.Add("Add New");
 
-            foreach (var option in options)
-            {
-                Console.WriteLine(option);
-            }
-
-            var originalpos = Console.CursorTop();
-            var currentpos = originalpos;
-            var count = 0;
-            var k = Console.ReadKey();
-
-            while (k.Key != ConsoleKey.Enter)
-            {
-                if (count != 0)
-                {
-                    Console.SetCursorPosition(0, currentpos);
-                    Console.WriteLine(options[options.Count - (originalpos - currentpos)]);
-                }
-
-                if (k.Key == ConsoleKey.UpArrow)
-                {
-                    currentpos--;
-                }
-
-                if (k.Key == ConsoleKey.DownArrow)
-                {
-                    currentpos++;
-                }
-
-                currentpos = Math.Min(originalpos - 1, Math.Max(originalpos - options.Count, currentpos));
-
-                Console.SetCursorPosition(0, currentpos);
-                SetBackgroundColor();
-                Console.WriteLine(options[options.Count - (originalpos - currentpos)]);
-                Console.ResetColor();
-
-                count++;
-
-                Console.SetCursorPosition(0, originalpos);
-                k = Console.ReadKey();
-            }
-
-            var selected = options[options.Count - (originalpos - currentpos)];
+            var selected = ChooseFromOptions(options);
 
             var logEntryList = new List<LogEntry>();
 
             if (selected == options.Last())
             {
-                Console.WriteLine("Enter log entries");
-
-                while (true)
-                {
-
-                    var input = Console.ReadLine();
-
-                    if (input == "done") break;
-
-                    if (input != null)
-                    {
-                        var logEntry = new LogEntry(input.Substring(0, 5), input.Substring(6, 5), input.Substring(11));
-                        logEntryList.Add(logEntry);
-                    }
-                }
-
-                Console.WriteLine("Enter The Date");
-
-                var dailyLog = new DailyLog(logEntryList, Console.ReadLine());
-                List<DailyLog> dailyLogList = new List<DailyLog>();
-                dailyLogList.Add(dailyLog);
-
-                var prList = new List<string>();
-
-                Console.WriteLine("Enter the pr for this work");
-                prList.Add(Console.ReadLine());
-
-                Console.WriteLine("Enter the name of Work");
-                WorkLogTask serializeTest = new WorkLogTask(prList, dailyLogList, Console.ReadLine());
-
-                json.Tasks.Add(serializeTest);
+                json.Tasks.Add(CreateNewWork());
             }
             else
             {
@@ -229,66 +91,11 @@ public class AddLogCommand : CommandBase<AddLogOptions>
                 }
                 dateoptions.Add("Add New");
 
-                foreach (var option in dateoptions)
+                var selectedDate = ChooseFromOptions(dateoptions);
+
+                if (selectedDate == "Add New")
                 {
-                    Console.WriteLine(option);
-                }
-
-                var secondOriginalpos = Console.CursorTop();
-                var secondCurrentpos = secondOriginalpos;
-                var secondCount = 0;
-                var c = Console.ReadKey();
-
-                while (c.Key != ConsoleKey.Enter)
-                {
-                    if (secondCount != 0)
-                    {
-                        Console.SetCursorPosition(0, secondCurrentpos);
-                        Console.WriteLine(dateoptions[dateoptions.Count - (secondOriginalpos - secondCurrentpos)]);
-                    }
-
-                    if (c.Key == ConsoleKey.UpArrow)
-                    {
-                        secondCurrentpos--;
-                    }
-
-                    if (c.Key == ConsoleKey.DownArrow)
-                    {
-                        secondCurrentpos++;
-                    }
-
-                    secondCurrentpos = Math.Min(secondOriginalpos - 1, Math.Max(secondOriginalpos - dateoptions.Count, secondCurrentpos));
-
-                    Console.SetCursorPosition(0, secondCurrentpos);
-                    SetBackgroundColor();
-                    Console.WriteLine(dateoptions[dateoptions.Count - (secondOriginalpos - secondCurrentpos)]);
-                    Console.ResetColor();
-
-                    secondCount++;
-
-                    Console.SetCursorPosition(0, secondOriginalpos);
-                    c = Console.ReadKey();
-                }
-
-                var selectedDate = dateoptions[dateoptions.Count - (secondOriginalpos - secondCurrentpos)];
-
-                if (selectedDate == dateoptions.Last())
-                {
-                    Console.WriteLine("Enter log entries");
-
-                    while (true)
-                    {
-
-                        var input = Console.ReadLine();
-
-                        if (input == "done") break;
-
-                        if (input != null)
-                        {
-                            var logEntry = new LogEntry(input.Substring(0, 5), input.Substring(6, 5), input.Substring(11));
-                            logEntryList.Add(logEntry);
-                        }
-                    }
+                    logEntryList = GetLogEntries(null);
 
                     Console.WriteLine("Enter the date");
 
@@ -302,21 +109,7 @@ public class AddLogCommand : CommandBase<AddLogOptions>
                 }
                 else
                 {
-                    Console.WriteLine("Enter log entries");
-
-                    while (true)
-                    {
-
-                        var input = Console.ReadLine();
-
-                        if (input == "done") break;
-
-                        if (input != null)
-                        {
-                            var logEntry = new LogEntry(input.Substring(0, 5), input.Substring(6, 5), input.Substring(11));
-                            logEntryList.Add(logEntry);
-                        }
-                    }
+                    logEntryList = GetLogEntries(null);
                 }
 
                 foreach (var work in json.Tasks)
@@ -337,43 +130,116 @@ public class AddLogCommand : CommandBase<AddLogOptions>
             string jsonOut = JsonConvert.SerializeObject(json, Formatting.Indented);
 
             File.WriteAllText(Path + @"\" + Args.Customer + ".workreport", jsonOut);
-            log.Info("Done, writing in expected format");
-
+            log.Info("Done.");
 
         }
 
         string fileContent = await File.ReadAllTextAsync(Path + @"\" + Args.Customer + ".workreport");
 
-        var readFile = JsonConvert.DeserializeObject<Root>(fileContent);
-        var root = new ExpandoObject();
-
-        foreach (var work in readFile.Tasks)
-        {
-            var formatted = new ExpandoObject();
-            var inner = new ExpandoObject();
-
-            formatted.TryAdd("pr", work.pr);
-
-            var log = new List<LogEntry>();
-            formatted.TryAdd("log", inner);
-
-            foreach (var dailyLog in work.log)
-            {
-                inner.TryAdd(dailyLog.Date, log);
-                foreach (var logEntry in dailyLog.LogEntries)
-                {
-                    log.Add(logEntry);
-                }
-            }
-            root.TryAdd(work.name, formatted);
-        }
-
-        var formattedJson = JsonConvert.SerializeObject(root, Formatting.Indented);
+        var formattedJson = FormatWorklog(fileContent);
 
         File.WriteAllText(Path + @"\" + Args.Customer + ".workreport.json", formattedJson);
 
         log.Info("added formatted file");
+
+        Commit();
     }
+
+    private string ChooseFromOptions(List<string> options)
+    {
+        foreach (var option in options)
+        {
+            Console.WriteLine(option);
+        }
+
+        var originalpos = Console.CursorTop();
+        var currentpos = originalpos;
+        var count = 0;
+        var k = Console.ReadKey();
+
+        while (k.Key != ConsoleKey.Enter)
+        {
+            if (count != 0)
+            {
+                Console.SetCursorPosition(0, currentpos);
+                Console.WriteLine(options[options.Count - (originalpos - currentpos)]);
+            }
+
+            if (k.Key == ConsoleKey.UpArrow)
+            {
+                currentpos--;
+            }
+
+            if (k.Key == ConsoleKey.DownArrow)
+            {
+                currentpos++;
+            }
+
+            currentpos = Math.Min(originalpos - 1, Math.Max(originalpos - options.Count, currentpos));
+
+            Console.SetCursorPosition(0, currentpos);
+            SetBackgroundColor();
+            Console.WriteLine(options[options.Count - (originalpos - currentpos)]);
+            Console.ResetColor();
+
+            count++;
+
+            Console.SetCursorPosition(0, originalpos);
+            k = Console.ReadKey();
+        }
+
+        return options[options.Count - (originalpos - currentpos)];
+    }
+
+    public string YesNoOption()
+    {
+
+        log.Info("Customer workreport file could not be found, create one ?");
+
+        var options = new List<string>();
+        options.Add("y");
+        options.Add("n");
+
+        foreach (var option in options)
+        {
+            Console.WriteLine(option);
+        }
+
+        var originalpos = Console.CursorTop();
+        var currentpos = originalpos;
+        var k = Console.ReadKey();
+
+        while (k.Key != ConsoleKey.Enter)
+        {
+            if (k.Key == ConsoleKey.UpArrow)
+            {
+                currentpos--;
+            }
+
+            if (k.Key == ConsoleKey.DownArrow)
+            {
+                currentpos++;
+            }
+
+            currentpos = Math.Min(originalpos - 1, Math.Max(originalpos - options.Count, currentpos));
+
+            MoveCursor(originalpos, currentpos, options);
+
+            Console.SetCursorPosition(0, originalpos);
+            k = Console.ReadKey();
+        }
+
+        if (currentpos != originalpos - 2)
+        {
+            return "n";
+        }
+        else
+        {
+            return "y";
+        }
+
+    }
+
     public void SetBackgroundColor()
     {
         Console.SetForeGroundColor(ConsoleColor.Black);
@@ -398,6 +264,129 @@ public class AddLogCommand : CommandBase<AddLogOptions>
         Console.WriteLine(options[(originalpos - currentpos + 1) % 2]);
 
         Console.SetCursorPosition(0, currentpos);
+    }
+
+    public List<LogEntry> GetLogEntries(List<LogEntry>? logEntryList)
+    {
+        if (logEntryList == null) logEntryList = new List<LogEntry>();
+
+        Console.WriteLine("Enter log entries");
+
+        while (true)
+        {
+
+            var input = Console.ReadLine();
+
+            if (input == "done") break;
+
+            if (input != null)
+            {
+                var logEntry = new LogEntry(input.Substring(0, 5), input.Substring(6, 5), input.Substring(11));
+                logEntryList.Add(logEntry);
+            }
+        }
+
+        return logEntryList;
+    }
+
+    public List<DailyLog> GetDate(List<LogEntry> logEntryList)
+    {
+        Console.WriteLine("Enter The Date");
+
+        var dailyLog = new DailyLog(logEntryList, Console.ReadLine());
+        List<DailyLog> dailyLogList = new List<DailyLog>();
+        dailyLogList.Add(dailyLog);
+
+        return dailyLogList;
+    }
+
+    public List<string> GetPr()
+    {
+        var prList = new List<string>();
+
+
+        Console.WriteLine("Enter the pr for this work");
+
+        while (true)
+        {
+
+            var input = Console.ReadLine();
+
+            if (input == "done") break;
+
+            if (input != null)
+            {
+                prList.Add(input);
+            }
+        }
+
+        return prList;
+    }
+
+    public string GetWorkName()
+    {
+
+        Console.WriteLine("Enter the name of Work");
+        return Console.ReadLine();
+    }
+
+    public string FormatWorklog(string fileContent)
+    {
+        var readFile = JsonConvert.DeserializeObject<Root>(fileContent);
+        var root = new ExpandoObject();
+
+        foreach (var work in readFile.Tasks)
+        {
+            var formatted = new ExpandoObject();
+            var inner = new ExpandoObject();
+
+            formatted.TryAdd("pr", work.pr);
+
+            var log = new List<LogEntry>();
+            formatted.TryAdd("log", inner);
+
+            foreach (var dailyLog in work.log)
+            {
+                inner.TryAdd(dailyLog.Date, log);
+                foreach (var logEntry in dailyLog.LogEntries)
+                {
+                    log.Add(logEntry);
+                }
+            }
+            root.TryAdd(work.name, formatted);
+        }
+
+        return JsonConvert.SerializeObject(root, Formatting.Indented);
+    }
+
+    public WorkLogTask CreateNewWork()
+    {
+        var logEntryList = GetLogEntries(null);
+
+        var dailyLogList = GetDate(logEntryList);
+
+        var prList = GetPr();
+
+        var workName = GetWorkName();
+
+        return new WorkLogTask(prList, dailyLogList, workName);
+    }
+
+    public void Commit()
+    {
+        string directory = @"C:\Users\90533\Documents\GitHub\worklog";
+
+        PowerShell powershell = PowerShell.Create();
+
+        powershell.AddScript($"cd {directory}");
+
+        powershell.AddScript(@"git init");
+        powershell.AddScript(@"git add .");
+        powershell.AddScript(@"git commit -m 'worklog update'");
+        powershell.AddScript(@"git push origin main");
+
+        Collection<PSObject> results = powershell.Invoke();
+
     }
 }
 
