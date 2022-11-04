@@ -2,8 +2,10 @@
 using Gazel.Client.CommandLine;
 using Gazel.Logging;
 using Newtonsoft.Json;
+using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Dynamic;
+using System.Management.Automation;
 
 namespace AutoWorklog;
 
@@ -91,7 +93,7 @@ public class AddLogCommand : CommandBase<AddLogOptions>
 
                 var selectedDate = ChooseFromOptions(dateoptions);
 
-                if (selectedDate == dateoptions.Last())
+                if (selectedDate == "Add New")
                 {
                     logEntryList = GetLogEntries(null);
 
@@ -128,9 +130,7 @@ public class AddLogCommand : CommandBase<AddLogOptions>
             string jsonOut = JsonConvert.SerializeObject(json, Formatting.Indented);
 
             File.WriteAllText(Path + @"\" + Args.Customer + ".workreport", jsonOut);
-            log.Info("Done, writing in expected format");
-
-            Commit(Path, Args.Customer);
+            log.Info("Done.");
 
         }
 
@@ -141,9 +141,11 @@ public class AddLogCommand : CommandBase<AddLogOptions>
         File.WriteAllText(Path + @"\" + Args.Customer + ".workreport.json", formattedJson);
 
         log.Info("added formatted file");
+
+        Commit();
     }
 
-    private object ChooseFromOptions(List<string> options)
+    private string ChooseFromOptions(List<string> options)
     {
         foreach (var option in options)
         {
@@ -370,25 +372,21 @@ public class AddLogCommand : CommandBase<AddLogOptions>
         return new WorkLogTask(prList, dailyLogList, workName);
     }
 
-    public void Commit(string Path, string customer)
+    public void Commit()
     {
-        var p = new Process();
-        var StartInfo = new ProcessStartInfo()
-        {
-            UseShellExecute = true,
-            //FileName = Path + @"\" + customer + "workreport.json"
+        string directory = @"C:\Users\90533\Documents\GitHub\worklog";
 
-        };
+        PowerShell powershell = PowerShell.Create();
 
-        StartInfo.ArgumentList.Add("cd " + Path);
-        StartInfo.ArgumentList.Add("Git add .");
-        StartInfo.ArgumentList.Add("Git commit -m\"worklog update\"");
-        StartInfo.ArgumentList.Add("Git push origin main");
+        powershell.AddScript($"cd {directory}");
 
-        p.StartInfo = StartInfo;
+        powershell.AddScript(@"git init");
+        powershell.AddScript(@"git add .");
+        powershell.AddScript(@"git commit -m 'worklog update'");
+        powershell.AddScript(@"git push origin main");
 
-        p.Start();
-        p.Close();
+        Collection<PSObject> results = powershell.Invoke();
+
     }
 }
 
