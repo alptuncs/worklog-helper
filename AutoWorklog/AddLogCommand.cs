@@ -374,7 +374,7 @@ public class AddLogCommand : CommandBase<AddLogOptions>
 
     public void Commit()
     {
-        string directory = @"C:\Users\90533\Documents\GitHub\worklog";
+        string directory = Path;
 
         PowerShell powershell = PowerShell.Create();
 
