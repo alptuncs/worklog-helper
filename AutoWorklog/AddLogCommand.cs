@@ -347,11 +347,11 @@ public class AddLogCommand : CommandBase<AddLogOptions>
 
             foreach (var dailyLog in work.log)
             {
-                inner.TryAdd(dailyLog.Date, log);
                 foreach (var logEntry in dailyLog.LogEntries)
                 {
                     log.Add(logEntry);
                 }
+                inner.TryAdd(dailyLog.Date, log);
             }
             root.TryAdd(work.name, formatted);
         }
