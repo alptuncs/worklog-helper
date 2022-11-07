@@ -6,6 +6,7 @@ using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Dynamic;
 using System.Management.Automation;
+using System.Management.Automation.Runspaces;
 
 namespace AutoWorklog;
 
@@ -374,19 +375,17 @@ public class AddLogCommand : CommandBase<AddLogOptions>
 
     public void Commit()
     {
-        string directory = Path;
+        ProcessStartInfo processStartInfo = new ProcessStartInfo()
+        {
+            FileName = @"C:\ProgramData\Microsoft\Windows\Start Menu\Programs\Git\Git Bash.lnk",
+            UseShellExecute = true,
+        };
+        processStartInfo.ArgumentList.Add(@"cd OneDrive\Belgeler\GitHub\worklog");
+        processStartInfo.ArgumentList.Add(@"git add .");
+        processStartInfo.ArgumentList.Add(@"git commit -m 'worklog update'");
+        processStartInfo.ArgumentList.Add(@"git push origin main");
 
-        PowerShell powershell = PowerShell.Create();
-
-        powershell.AddScript($"cd {directory}");
-
-        powershell.AddScript(@"git init");
-        powershell.AddScript(@"git add .");
-        powershell.AddScript(@"git commit -m 'worklog update'");
-        powershell.AddScript(@"git push origin main");
-
-        Collection<PSObject> results = powershell.Invoke();
-
+        var process = Process.Start(processStartInfo);
     }
 }
 
