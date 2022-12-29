@@ -5,7 +5,9 @@ using Newtonsoft.Json;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Dynamic;
+using System.IO;
 using System.Management.Automation;
+using System.Text.RegularExpressions;
 
 namespace AutoWorklog;
 
@@ -270,6 +272,8 @@ public class AddLogCommand : CommandBase<AddLogOptions>
     {
         if (logEntryList == null) logEntryList = new List<LogEntry>();
 
+        var r = new Regex(@"[0-2]{1}[0-9]{1}[.]{1}[0-5]{1}[0-9]{1}\\ {1}[0-2]{1}[0-9]{1}[.]{1}[0-5]{1}[0-9]{1}\\ [A-Z,a-z,\\ ]+");
+
         Console.WriteLine("Enter log entries");
 
         while (true)
@@ -281,8 +285,15 @@ public class AddLogCommand : CommandBase<AddLogOptions>
 
             if (input != null)
             {
-                var logEntry = new LogEntry(input.Substring(0, 5), input.Substring(6, 5), input.Substring(11));
-                logEntryList.Add(logEntry);
+                if (r.IsMatch(input))
+                {
+                    var logEntry = new LogEntry(input.Substring(0, 5), input.Substring(6, 5), input.Substring(11));
+                    logEntryList.Add(logEntry);
+                }
+                else
+                {
+                    Console.WriteLine("Wrong Format");
+                }
             }
         }
 
@@ -293,7 +304,24 @@ public class AddLogCommand : CommandBase<AddLogOptions>
     {
         Console.WriteLine("Enter The Date");
 
-        var dailyLog = new DailyLog(logEntryList, Console.ReadLine());
+        var r = new Regex(@"^([0,1,2]{1}[0-9]{1}|[3]{1}[0,1]{1})");
+
+        var date = "";
+
+        while (true)
+        {
+            date = Console.ReadLine();
+            if (r.IsMatch(date))
+            {
+                break;
+            }
+            else
+            {
+                Console.WriteLine("Wrong Format");
+            }
+        }
+
+        var dailyLog = new DailyLog(logEntryList, date);
         List<DailyLog> dailyLogList = new List<DailyLog>();
         dailyLogList.Add(dailyLog);
 
@@ -340,7 +368,10 @@ public class AddLogCommand : CommandBase<AddLogOptions>
             var formatted = new ExpandoObject();
             var inner = new ExpandoObject();
 
-            formatted.TryAdd("pr", work.pr);
+            if (work.pr.Count > 0)
+            {
+                formatted.TryAdd("pr", work.pr);
+            }
 
             formatted.TryAdd("log", inner);
 
